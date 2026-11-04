@@ -29,7 +29,7 @@ foreach ($item in $indexes) {
 
     $meta = Get-Content $metaPath -Raw -Encoding UTF8
     try {
-        Invoke-RestMethod -Uri "$esUrl/$name" -Method Put -Body $meta -ContentType 'application/json; charset=utf-8' -TimeoutSec 30 | Out-Null
+        Invoke-RestMethod -Uri "$esUrl/$name" -Method Put -Body $meta -ContentType 'application/json; charset=utf-8' -Headers (Es-AuthHeader) -TimeoutSec 30 | Out-Null
         Write-Info "已创建索引与字段映射"
     } catch {
         $status = $_.Exception.Response.StatusCode.value__
@@ -56,7 +56,7 @@ foreach ($item in $indexes) {
     }
     Write-Info "已解压数据（$([math]::Round((Get-Item $tmpNdjson).Length / 1MB, 1)) MB），执行 _bulk 导入 ..."
 
-    $bulkResult = & curl.exe -s -X POST "$esUrl/$name/_bulk?refresh=true" -H "Content-Type: application/x-ndjson" --data-binary "@$tmpNdjson"
+    $bulkResult = & curl.exe -s -u "${EsUser}:${EsPass}" -X POST "$esUrl/$name/_bulk?refresh=true" -H "Content-Type: application/x-ndjson" --data-binary "@$tmpNdjson"
     Remove-Item $tmpNdjson -Force -ErrorAction SilentlyContinue
     if ($LASTEXITCODE -ne 0) { throw "导入 $name 失败（curl 退出码 $LASTEXITCODE）" }
     $parsed = $bulkResult | ConvertFrom-Json
@@ -69,7 +69,7 @@ foreach ($item in $indexes) {
 Write-Step "校验文档数与索引可用性"
 $okAll = $true
 foreach ($item in $indexes) {
-    $count = (Invoke-RestMethod -Uri "$esUrl/$($item.Name)/_count" -TimeoutSec 10).count
+    $count = (Invoke-RestMethod -Uri "$esUrl/$($item.Name)/_count" -Headers (Es-AuthHeader) -TimeoutSec 10).count
     if ($count -ge $item.Expected) {
         Write-Ok "$($item.Name)：$count 条（期望 >= $($item.Expected)）"
     } else {

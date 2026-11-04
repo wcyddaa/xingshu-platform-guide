@@ -173,14 +173,20 @@ network.host: 127.0.0.1
 http.port: 9200
 discovery.type: single-node
 bootstrap.memory_lock: false
-xpack.security.enabled: false
+xpack.security.enabled: true
 xpack.security.http.ssl.enabled: false
 xpack.security.transport.ssl.enabled: false
+xpack.security.enrollment.enabled: false
 xpack.ml.enabled: false
 "@ | Set-Content -Path $esConf -Encoding UTF8
     $heapDir = Join-Path $EsDir 'config\jvm.options.d'
     New-Item -ItemType Directory -Path $heapDir -Force | Out-Null
     "-Xms1g`r`n-Xmx1g" | Set-Content -Path (Join-Path $heapDir 'heap.options') -Encoding ASCII
+    # 首次启动前写入 bootstrap 密码，启动后 elastic 用户的密码即为该值
+    $keystore = Join-Path $EsDir 'bin\elasticsearch-keystore.bat'
+    if (Test-Path $keystore) {
+        & $keystore add -x 'bootstrap.password' $EsPass 2>&1 | Out-Null
+    }
     Write-Info "启动 Elasticsearch（首次启动约 1~2 分钟，占用内存约 1 GB）..."
     $bat = Join-Path $EsDir 'bin\elasticsearch.bat'
     Start-Process -FilePath 'cmd.exe' -ArgumentList "/c `"$bat`"" -RedirectStandardOutput (Join-Path $LogDir 'es.out.log') -RedirectStandardError (Join-Path $LogDir 'es.err.log') -WindowStyle Hidden | Out-Null
@@ -188,7 +194,7 @@ xpack.ml.enabled: false
         Write-Info "日志位置：$LogDir\es.err.log"
         throw "Elasticsearch 启动失败"
     }
-    Write-Ok "Elasticsearch 已启动：http://localhost:9200（安全认证已关闭，仅本机访问）"
+    Write-Ok "Elasticsearch 已启动：http://localhost:9200（安全认证已开启，账号 $EsUser / $EsPass，仅本机访问）"
 }
 
 Write-Host ""

@@ -71,11 +71,11 @@ if ($redisCli -and (Test-Path $redisCli)) {
     Check 'Redis 端口可连接' (Test-Port 6379) '未找到 redis-cli，仅校验端口'
 }
 try {
-    $health = Invoke-RestMethod -Uri 'http://localhost:9200/_cluster/health' -TimeoutSec 10
+    $health = Invoke-RestMethod -Uri 'http://localhost:9200/_cluster/health' -Headers (Es-AuthHeader) -TimeoutSec 10
     Check 'Elasticsearch 集群健康' ($health.status -in @('green', 'yellow')) "status=$($health.status)"
     $expect = @{ textbook_index = 1; courseware_index = 8; textbook_chunk_vector = 2258; courseware_chunk_vector = 29 }
     foreach ($name in $expect.Keys) {
-        $count = (Invoke-RestMethod -Uri "http://localhost:9200/$name/_count" -TimeoutSec 10).count
+        $count = (Invoke-RestMethod -Uri "http://localhost:9200/$name/_count" -Headers (Es-AuthHeader) -TimeoutSec 10).count
         Check "索引 $name 文档数" ($count -ge $expect[$name]) "$count 条（期望 >= $($expect[$name])）"
     }
 } catch {

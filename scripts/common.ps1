@@ -29,6 +29,10 @@ $MysqlDataDir = Join-Path $DataDir 'mysql'
 $RedisDataDir = Join-Path $DataDir 'redis'
 $EsDataDir    = Join-Path $DataDir 'elasticsearch'
 
+# Elasticsearch 安全认证（HTTP 明文 + 账号密码，本地开发统一使用）
+$EsUser       = 'elastic'
+$EsPass       = 'xingshu123'
+
 $RepoXs       = Join-Path $SrcDir 'xs-platform'
 $RepoWeb      = Join-Path $SrcDir 'ai-assistant'
 $RepoAi       = Join-Path $SrcDir 'fastapi-ai-assistant'
@@ -171,9 +175,15 @@ function Test-RedisReady {
     }
 }
 
+function Es-AuthHeader {
+    $pair = "${EsUser}:${EsPass}"
+    $b64 = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($pair))
+    return @{ Authorization = "Basic $b64" }
+}
+
 function Test-EsReady {
     try {
-        $resp = Invoke-RestMethod -Uri 'http://localhost:9200/_cluster/health' -TimeoutSec 5
+        $resp = Invoke-RestMethod -Uri 'http://localhost:9200/_cluster/health' -Headers (Es-AuthHeader) -TimeoutSec 5
         return ($resp.status -in @('green', 'yellow'))
     } catch {
         return $false

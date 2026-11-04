@@ -183,7 +183,7 @@ Remove-Item "$env:USERPROFILE\XingShuEnv" -Recurse -Force
 | Python | 3.13.10 | 3.13.x | 与 `.python-version` 一致 |
 | MySQL | 9.6.0 | 9.6.0 | 完全一致（含排序规则） |
 | Redis | 3.0.504 | 3.0.504 | 完全一致 |
-| Elasticsearch | 8.18.1 | 8.18.1 | 完全一致；评委环境关闭安全认证并限制 1 GB 堆 |
+| Elasticsearch | 8.18.1 | 8.18.1 | 完全一致；评委环境开启账号认证（`elastic` / `xingshu123`），仅监听本机并限制 1 GB 堆 |
 
 ### 运行目录结构（`%USERPROFILE%\XingShuEnv`）
 
@@ -277,7 +277,7 @@ Get-NetTCPConnection -State Listen -LocalPort 8080 | Select-Object OwningProcess
 
 - 必须以 `xs-platform` 仓库根目录为工作目录启动（脚本已处理）。
 - 上传目录 `uploads\` 会自动创建。
-- ES 必须是 `http://localhost:9200` 且安全认证关闭（脚本已配置）。
+- ES 必须是 `http://localhost:9200`，并开启账号认证（默认 `elastic` / `xingshu123`，脚本已配置；密码可用 `XINGSHU_ES_PASSWORD` 覆盖）。
 
 ### 6. 前端能打开但接口 401 / 一直转圈
 
@@ -333,5 +333,5 @@ Remove-Item "$env:USERPROFILE\XingShuEnv" -Recurse -Force
 - 评委填写的**大模型 Key** 只存在于本机 `%USERPROFILE%\XingShuEnv\config\app.env.ps1`、本机数据库和进程环境变量中。
 - **向量模型 Key 不经过环境变量和配置文件**：只保存在本机数据库，由 xs-config 的 `/api/model-config/agent-config` 内部接口提供，调用方必须携带 `X-Internal-Token`；普通用户 Token 无法读取，管理端列表返回的密钥已脱敏。
 - 服务端不在日志中输出完整密钥（FastAPI 使用掩码，xs-book 只记录模型名与地址），密钥仅在内存中缓存，不写入任何仓库。
-- 评委环境 Elasticsearch 关闭安全认证并只监听 `127.0.0.1`，不对外暴露；仅用于本地演示。
+- 评委环境 Elasticsearch 开启账号认证（`elastic` / `xingshu123`，HTTP 不启用 TLS）并只监听 `127.0.0.1`，不对外暴露；仅用于本地演示。
 - 内部服务令牌 `xingshu-internal-2026` 是演示用的固定值；携带该令牌的请求只接受来自 `127.0.0.1` / `::1` 的本机调用，局域网内其它机器无法读取模型密钥。

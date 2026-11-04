@@ -67,15 +67,15 @@ Write-Ok "MySQL / Redis / Elasticsearch 均已就绪"
 Write-Step "2/3 启动 Spring Boot 服务（8080-8087）"
 New-Item -ItemType Directory -Path (Join-Path $RepoXs 'uploads') -Force | Out-Null
 $env:XINGSHU_ES_URI = 'http://localhost:9200'
-$env:XINGSHU_ES_USERNAME = ''
-$env:XINGSHU_ES_PASSWORD = ''
+$env:XINGSHU_ES_USERNAME = $EsUser
+$env:XINGSHU_ES_PASSWORD = $EsPass
 
 Start-Backend 'xs-auth'   'xs-auth'   8081 $RepoXs @()
 Start-Backend 'xs-user'   'xs-user'   8080 $RepoXs @()
 Start-Backend 'xs-course' 'xs-course' 8082 $RepoXs @()
 Start-Backend 'xs-config' 'xs-config' 8086 $RepoXs @()
 Start-Backend 'xs-data'   'xs-data'   8085 $RepoXs @()
-Start-Backend 'xs-book'   'xs-book'   8083 $RepoXs @('--spring.elasticsearch.uris=http://localhost:9200', '--spring.elasticsearch.username=', '--spring.elasticsearch.password=')
+Start-Backend 'xs-book'   'xs-book'   8083 $RepoXs @('--spring.elasticsearch.uris=http://localhost:9200', "--spring.elasticsearch.username=$EsUser", "--spring.elasticsearch.password=$EsPass")
 Start-Backend 'xs-exam'   'xs-exam'   8084 $RepoXs @()
 Start-Backend 'xs-learning' 'xs-learning' 8087 $RepoXs @()
 
