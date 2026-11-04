@@ -82,7 +82,7 @@ jobs:
             [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors) | Out-Null
             if ($errors.Count -gt 0) {
               $failed = $true
-              Write-Host "语法错误：$($_.Name)" -ForegroundColor Red
+              Write-Host "Syntax error: $($_.Name)" -ForegroundColor Red
               $errors | ForEach-Object { Write-Host "  $($_.Message)" }
             } else {
               Write-Host "OK: $($_.Name)"
@@ -93,21 +93,21 @@ jobs:
         shell: powershell
         run: |
           $errors = @()
-          if (-not (Test-Path 'sql\seed.sql')) { $errors += '缺少 sql\seed.sql' }
+          if (-not (Test-Path 'sql\seed.sql')) { $errors += 'Missing sql\seed.sql' }
           $dbCount = (Select-String -Path 'sql\seed.sql' -Pattern 'CREATE DATABASE' | Measure-Object).Count
-          if ($dbCount -ne 6) { $errors += "seed.sql 数据库数量为 $dbCount，期望 6" }
-          if (-not (Select-String -Path 'sql\seed.sql' -Pattern 'admin001' -Quiet)) { $errors += 'seed.sql 缺少 admin001' }
+          if ($dbCount -ne 6) { $errors += "seed.sql has $dbCount databases, expected 6" }
+          if (-not (Select-String -Path 'sql\seed.sql' -Pattern 'admin001' -Quiet)) { $errors += 'seed.sql missing admin001' }
           foreach ($name in @('textbook_index','courseware_index','textbook_chunk_vector','courseware_chunk_vector')) {
-            if (-not (Test-Path "es\$name-meta.json")) { $errors += "缺少 es\$name-meta.json" }
-            if (-not (Test-Path "es\$name-data.ndjson.gz")) { $errors += "缺少 es\$name-data.ndjson.gz" }
+            if (-not (Test-Path "es\$name-meta.json")) { $errors += "Missing es\$name-meta.json" }
+            if (-not (Test-Path "es\$name-data.ndjson.gz")) { $errors += "Missing es\$name-data.ndjson.gz" }
           }
-          if (-not (Test-Path 'runtime\Redis-x64-3.0.504.zip')) { $errors += '缺少内置 Redis 压缩包' }
-          if (-not (Test-Path 'config\app.env.example')) { $errors += '缺少 config\app.env.example' }
+          if (-not (Test-Path 'runtime\Redis-x64-3.0.504.zip')) { $errors += 'Missing bundled Redis zip' }
+          if (-not (Test-Path 'config\app.env.example')) { $errors += 'Missing config\app.env.example' }
           if ($errors.Count -gt 0) {
             $errors | ForEach-Object { Write-Host "FAIL: $_" -ForegroundColor Red }
             exit 1
           }
-          Write-Host '种子数据与索引文件完整'
+          Write-Host 'Seed data and ES index files are complete'
       - name: 校验 ES 压缩数据可解压
         shell: powershell
         run: |
@@ -117,7 +117,7 @@ jobs:
               $gz = New-Object System.IO.Compression.GZipStream($fs, [System.IO.Compression.CompressionMode]::Decompress)
               $buf = New-Object byte[] 4096
               $read = $gz.Read($buf, 0, $buf.Length)
-              if ($read -le 0) { throw "无法读取 $($f.Name)" }
+              if ($read -le 0) { throw "Cannot read $($f.Name)" }
               $gz.Dispose()
               Write-Host "OK: $($f.Name)"
             } finally { $fs.Dispose() }
