@@ -334,4 +334,4 @@ Remove-Item "$env:USERPROFILE\XingShuEnv" -Recurse -Force
 - **向量模型 Key 不经过环境变量和配置文件**：只保存在本机数据库，由 xs-config 的 `/api/model-config/agent-config` 内部接口提供，调用方必须携带 `X-Internal-Token`；普通用户 Token 无法读取，管理端列表返回的密钥已脱敏。
 - 服务端不在日志中输出完整密钥（FastAPI 使用掩码，xs-book 只记录模型名与地址），密钥仅在内存中缓存，不写入任何仓库。
 - 评委环境 Elasticsearch 关闭安全认证并只监听 `127.0.0.1`，不对外暴露；仅用于本地演示。
-- 内部服务令牌 `xingshu-internal-2026` 是演示用的固定值，不含真实权限。
+- 内部服务令牌 `xingshu-internal-2026` 是演示用的固定值；携带该令牌的请求只接受来自 `127.0.0.1` / `::1` 的本机调用，局域网内其它机器无法读取模型密钥。
