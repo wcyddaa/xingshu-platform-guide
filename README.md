@@ -330,6 +330,8 @@ Remove-Item "$env:USERPROFILE\XingShuEnv" -Recurse -Force
 
 - 本指引仓库**不包含任何真实 API Key**。`app.env.example` 只有占位符。
 - 三个源码仓库已完成脱敏：`application.yaml` 中的模型 Key、ES 密码改为 `${环境变量:默认值}`，`init.sql` / 种子数据中的 Key 已置空。
-- 评委填写的 Key 只存在于本机 `%USERPROFILE%\XingShuEnv\config\app.env.ps1`、本机数据库和进程环境变量中。
+- 评委填写的**大模型 Key** 只存在于本机 `%USERPROFILE%\XingShuEnv\config\app.env.ps1`、本机数据库和进程环境变量中。
+- **向量模型 Key 不经过环境变量和配置文件**：只保存在本机数据库，由 xs-config 的 `/api/model-config/agent-config` 内部接口提供，调用方必须携带 `X-Internal-Token`；普通用户 Token 无法读取，管理端列表返回的密钥已脱敏。
+- 服务端不在日志中输出完整密钥（FastAPI 使用掩码，xs-book 只记录模型名与地址），密钥仅在内存中缓存，不写入任何仓库。
 - 评委环境 Elasticsearch 关闭安全认证并只监听 `127.0.0.1`，不对外暴露；仅用于本地演示。
 - 内部服务令牌 `xingshu-internal-2026` 是演示用的固定值，不含真实权限。
