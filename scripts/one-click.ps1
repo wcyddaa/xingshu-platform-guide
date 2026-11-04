@@ -16,7 +16,9 @@ try {
     & (Join-Path $PSScriptRoot '04-init-es.ps1')
     & (Join-Path $PSScriptRoot '05-build.ps1')
     & (Join-Path $PSScriptRoot '06-start-all.ps1')
-    & (Join-Path $PSScriptRoot 'verify.ps1')
+    # verify.ps1 内部使用 exit，放到子进程执行，避免提前结束本脚本
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'verify.ps1')
+    if ($LASTEXITCODE -ne 0) { throw "自动验证未全部通过，请根据上方 FAIL 项排查" }
 } catch {
     Write-Host ""
     Write-Fail $_.Exception.Message
