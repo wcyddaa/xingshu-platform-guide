@@ -579,11 +579,12 @@ UNLOCK TABLES;
 USE `xs-config`;
 CREATE TABLE IF NOT EXISTS `storage_config` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
-    `provider` VARCHAR(20) NOT NULL DEFAULT 'agc',
+    `provider` VARCHAR(20) NOT NULL DEFAULT 'agc' COMMENT 'agc/oss/cos/local',
+    `endpoint` VARCHAR(200) DEFAULT NULL COMMENT '接入地址（OSS endpoint，AGC/COS 可空）',
     `bucket` VARCHAR(100) DEFAULT NULL,
     `region` VARCHAR(50) DEFAULT 'cn-east-3',
-    `client_id` VARCHAR(100) DEFAULT NULL,
-    `client_secret` VARCHAR(500) DEFAULT NULL COMMENT '加密存储',
+    `client_id` VARCHAR(200) DEFAULT NULL COMMENT 'AGC client_id / OSS AccessKeyId / COS SecretId',
+    `client_secret` VARCHAR(500) DEFAULT NULL COMMENT '加密存储：AGC secret / OSS AccessKeySecret / COS SecretKey',
     `status` VARCHAR(20) NOT NULL DEFAULT 'untested',
     `test_message` VARCHAR(500) DEFAULT NULL,
     `last_test_time` DATETIME DEFAULT NULL,
