@@ -48,7 +48,7 @@ git -c http.proxy= -c https.proxy= clone https://github.com/wcyddaa/xingshu-plat
 $env:XINGSHU_LLM_API_KEY = '你的大模型 Key'  # 阿里云百炼 DashScope，qwen-plus
 ```
 
-- Key 只写入你本机数据库和进程环境变量，**不会提交到任何仓库**。
+- Key 只写入你本机数据库和进程环境变量，**不会提交到任何仓库**；数据库内以 AES-GCM 密文保存（主密钥在本机 `%USERPROFILE%\XingShuEnv\secret.key`，自动生成）。
 - 不填也能启动平台、登录、浏览数据；只是智能体问答会提示缺少模型凭据。
 - 也可以启动后在**管理员端「模型配置」**页面填写并发布，效果相同。
 
@@ -336,7 +336,8 @@ Remove-Item "$env:USERPROFILE\XingShuEnv" -Recurse -Force
 
 - 本指引仓库**不包含任何真实 API Key**。`app.env.example` 只有占位符。
 - 三个源码仓库已完成脱敏：`application.yaml` 不再包含真实模型 Key（仅保留 `not-configured` 占位），ES 密码改为 `${环境变量:默认值}`，`init.sql` / 种子数据中的 Key 已置空。
-- 评委填写的**大模型 Key** 只存在于本机 `%USERPROFILE%\XingShuEnv\config\app.env.ps1`、本机数据库和进程环境变量中。
+- 评委填写的**大模型 Key** 只存在于本机 `%USERPROFILE%\XingShuEnv\config\app.env.ps1`、本机数据库和进程环境变量中；
+  数据库内为 AES-GCM 密文（`enc:v1:` 前缀），主密钥保存在本机 `XingShuEnv\secret.key`，可用 `XINGSHU_SECRET_KEY` 覆盖。
 - **向量模型 Key 不经过环境变量和配置文件**：只保存在本机数据库，由 xs-config 的 `/api/model-config/agent-config` 内部接口提供，调用方必须携带 `X-Internal-Token`；普通用户 Token 无法读取，管理端列表返回的密钥已脱敏。
 - 服务端不在日志中输出完整密钥（FastAPI 使用掩码，xs-book 只记录模型名与地址），密钥仅在内存中缓存，不写入任何仓库。
 - 评委环境 Elasticsearch 开启账号认证（`elastic` / `xingshu123`，HTTP 不启用 TLS）并只监听 `127.0.0.1`，不对外暴露；仅用于本地演示。
