@@ -12,7 +12,7 @@ if (-not (Test-Path $RepoXs)) { throw "未找到源码，请先执行 02-clone-r
 Write-Step "1/4 编译 Spring Boot 后端（12 个模块，首次需要下载依赖）"
 Push-Location $RepoXs
 try {
-    & (Join-Path $MavenDir 'bin\mvn.cmd') -B -Dmaven.test.skip=true package 2>&1 | Tee-Object -FilePath (Join-Path $LogDir 'backend-build.log')
+    & (Join-Path $MavenDir 'bin\mvn.cmd') -B '-Dmaven.test.skip=true' package 2>&1 | Tee-Object -FilePath (Join-Path $LogDir 'backend-build.log')
     if ($LASTEXITCODE -ne 0) { throw "后端编译失败，详见 $LogDir\backend-build.log" }
 } finally {
     Pop-Location
@@ -40,12 +40,6 @@ if ($env:XINGSHU_LLM_API_KEY) {
     $content = [System.Text.RegularExpressions.Regex]::Replace($content, '(?m)^OPENAI_MODEL_NAME=.*$', "OPENAI_MODEL_NAME=$($env:XINGSHU_LLM_MODEL)")
     [System.IO.File]::WriteAllText($envTarget, $content, (New-Object System.Text.UTF8Encoding($false)))
     Write-Ok "已写入大模型 Key 到 .env"
-}
-if ($env:XINGSHU_EMBEDDING_API_KEY) {
-    $content = [System.IO.File]::ReadAllText($envTarget)
-    $content = [System.Text.RegularExpressions.Regex]::Replace($content, '(?m)^XINGSHU_EMBEDDING_API_KEY=.*$', "XINGSHU_EMBEDDING_API_KEY=$($env:XINGSHU_EMBEDDING_API_KEY)")
-    [System.IO.File]::WriteAllText($envTarget, $content, (New-Object System.Text.UTF8Encoding($false)))
-    Write-Ok "已写入向量模型 Key 到 .env"
 }
 
 Push-Location $RepoAi

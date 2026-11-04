@@ -39,46 +39,30 @@ Set-Content -Path $checkFile -Value $sqlCheck -Encoding UTF8
 Get-Content $checkFile -Raw | & $mysqlExe '--host=127.0.0.1' "--port=$env:XINGSHU_MYSQL_PORT" '--user=root' -N
 Remove-Item $checkFile -Force -ErrorAction SilentlyContinue
 
-Write-Step "3/3 如已填写 Key，则写入数据库（可跳过，改在页面填写）"
+Write-Step "3/3 如已填写大模型 Key，则写入数据库（可跳过，改在页面填写）"
 $llmKey = $env:XINGSHU_LLM_API_KEY
-$embKey = $env:XINGSHU_EMBEDDING_API_KEY
-if ([string]::IsNullOrWhiteSpace($llmKey) -and [string]::IsNullOrWhiteSpace($embKey)) {
-    Write-Info "未检测到 Key，跳过。启动后可在管理员端「模型配置」页面填写并发布。"
+if ([string]::IsNullOrWhiteSpace($llmKey)) {
+    Write-Info "未检测到大模型 Key，跳过。启动后可在管理员端「模型配置」页面填写并发布。"
 } else {
     $llmBase = $env:XINGSHU_LLM_BASE_URL
     $llmModel = $env:XINGSHU_LLM_MODEL
-    $embBase = $env:XINGSHU_EMBEDDING_BASE_URL
-    $embModel = $env:XINGSHU_EMBEDDING_MODEL
     $safeLlm = $llmKey -replace "'", "''"
-    $safeEmb = $embKey -replace "'", "''"
     $safeLlmBase = $llmBase -replace "'", "''"
     $safeLlmModel = $llmModel -replace "'", "''"
-    $safeEmbBase = $embBase -replace "'", "''"
-    $safeEmbModel = $embModel -replace "'", "''"
 
-    $keySql = ''
-    if (-not [string]::IsNullOrWhiteSpace($safeLlm)) {
-        $keySql += @"
+    $keySql = @"
 INSERT INTO ``xs-config``.model_config (config_type, agent_name, model_name, base_url, api_key, temperature, max_tokens, test_status, enabled)
 SELECT 'LLM', 'chat', '$safeLlmModel', '$safeLlmBase', '$safeLlm', 0.3, 4096, 'success', 1
 WHERE NOT EXISTS (SELECT 1 FROM ``xs-config``.model_config WHERE config_type='LLM' AND agent_name='chat');
 UPDATE ``xs-config``.model_config SET api_key='$safeLlm', base_url='$safeLlmBase', model_name='$safeLlmModel', test_status='success', enabled=1 WHERE config_type='LLM' AND agent_name='chat';
 UPDATE ``xs-config``.agent_class_config SET api_key='$safeLlm';
 "@
-    }
-    if (-not [string]::IsNullOrWhiteSpace($safeEmb)) {
-        $keySql += @"
-INSERT INTO ``xs-config``.model_config (config_type, agent_name, model_name, base_url, api_key, temperature, max_tokens, test_status, enabled)
-SELECT 'EMBEDDING', 'default', '$safeEmbModel', '$safeEmbBase', '$safeEmb', 0.0, 0, 'success', 1
-WHERE NOT EXISTS (SELECT 1 FROM ``xs-config``.model_config WHERE config_type='EMBEDDING');
-"@
-    }
     $keyFile = Join-Path $env:TEMP 'xingshu_inject_key.sql'
     Set-Content -Path $keyFile -Value $keySql -Encoding UTF8
     Get-Content $keyFile -Raw | & $mysqlExe '--host=127.0.0.1' "--port=$env:XINGSHU_MYSQL_PORT" '--user=root' --default-character-set=utf8mb4
-    if ($LASTEXITCODE -ne 0) { throw "写入模型 Key 失败" }
+    if ($LASTEXITCODE -ne 0) { throw "写入大模型 Key 失败" }
     Remove-Item $keyFile -Force -ErrorAction SilentlyContinue
-    Write-Ok "已将模型 Key 写入本机数据库（管理员端可直接看到）"
+    Write-Ok "已将大模型 Key 写入本机数据库；向量模型请在管理员端「模型配置」中单独填写并发布"
 }
 
 Write-Host ""

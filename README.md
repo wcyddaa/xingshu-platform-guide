@@ -42,16 +42,19 @@ git -c http.proxy= -c https.proxy= clone https://github.com/wcyddaa/xingshu-plat
 
 ### 第 3 步（可选，强烈建议）：填入你自己的模型 Key
 
-打开 `%USERPROFILE%\XingShuEnv\config\app.env.ps1`（首次运行脚本后会自动生成），填写：
+打开 `%USERPROFILE%\XingShuEnv\config\app.env.ps1`（首次运行脚本后会自动生成），填写大模型 Key：
 
 ```powershell
-$env:XINGSHU_LLM_API_KEY = '你的大模型 Key'          # 阿里云百炼 DashScope，qwen-plus
-$env:XINGSHU_EMBEDDING_API_KEY = '你的向量模型 Key'  # 硅基流动 SiliconFlow，BAAI/bge-m3
+$env:XINGSHU_LLM_API_KEY = '你的大模型 Key'  # 阿里云百炼 DashScope，qwen-plus
 ```
 
 - Key 只写入你本机数据库和进程环境变量，**不会提交到任何仓库**。
 - 不填也能启动平台、登录、浏览数据；只是智能体问答会提示缺少模型凭据。
 - 也可以启动后在**管理员端「模型配置」**页面填写并发布，效果相同。
+
+**向量模型 Key 不再使用环境变量**，统一在管理员端「模型配置」页面的 **EMBEDDING** 分类中填写
+（硅基流动 SiliconFlow、`BAAI/bge-m3`、1024 维），测试通过后发布。xs-book 会从 xs-config
+的受保护内部接口读取，配置后**无需重启、无需重跑脚本**。
 
 ### 第 4 步：双击 `一键启动.bat`
 
@@ -304,11 +307,8 @@ npm install --no-audit --no-fund
 
 ### 10. 智能体问答提示“未配置模型 Key”
 
-任选其一：
-
-- 在 `XingShuEnv\config\app.env.ps1` 填 Key，然后重跑 `03-init-db.ps1`（会写入数据库）并重启 `06-start-all.ps1`；
-- 或在管理员端「模型配置」页面填写、测试、发布；
-- RAG 检索还需要向量模型 Key（SiliconFlow `BAAI/bge-m3`），填 `XINGSHU_EMBEDDING_API_KEY` 后重跑 `05-build.ps1`（写入 FastAPI `.env`）和 `06-start-all.ps1`。
+- **大模型 Key**：在 `XingShuEnv\config\app.env.ps1` 填好后重跑 `03-init-db.ps1` 并重启 `06-start-all.ps1`；或直接在管理员端「模型配置」页面填写、测试、发布（无需重启）。
+- **向量模型 Key**：在管理员端「模型配置」→ **EMBEDDING** 填写 SiliconFlow `BAAI/bge-m3` 密钥，测试通过后发布。密钥只保存在本机数据库，由 xs-config 内部接口提供给 xs-book，配置后下一次问答自动生效。
 
 ### 11. 教学班选不到智能体
 
