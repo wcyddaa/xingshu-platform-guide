@@ -65,7 +65,19 @@ Start-InfraIfNeeded
 Write-Ok "MySQL / Redis / Elasticsearch 均已就绪"
 
 Write-Step "2/3 启动 Spring Boot 服务（8080-8087）"
-New-Item -ItemType Directory -Path (Join-Path $RepoXs 'uploads') -Force | Out-Null
+# 统一文件存储根目录（教材/课件/作业附件），各服务共用同一份
+$UploadDir = Join-Path $Runtime 'uploads'
+New-Item -ItemType Directory -Path (Join-Path $UploadDir 'textbooks') -Force | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $UploadDir 'courseware') -Force | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $UploadDir 'homework') -Force | Out-Null
+$env:XINGSHU_UPLOAD_DIR = $UploadDir
+# AGC 凭据放在仓库外（不随源码分发）
+$CredFile = Join-Path $Runtime 'agc-apiclient.json'
+if (Test-Path $CredFile) {
+    $env:XINGSHU_AGC_CREDENTIALS = $CredFile
+} else {
+    Write-Warn2 "未找到 AGC 凭据 $CredFile，云端存储将不可用（本地存储不受影响）"
+}
 $env:XINGSHU_ES_URI = 'http://localhost:9200'
 $env:XINGSHU_ES_USERNAME = $EsUser
 $env:XINGSHU_ES_PASSWORD = $EsPass

@@ -4,11 +4,11 @@
 
 源码在三个公开仓库中，本仓库负责：一键安装同版本基础设施、初始化数据库表结构与 admin001、启动全部服务、自动验证。
 
-| 仓库 | 说明 | 地址 |
-| --- | --- | --- |
-| xs-platform | Spring Boot 4.1 微服务后端（8 个服务） | https://github.com/wcyddaa/xs-platform |
-| ai-assistant | uni-app + Vue3 + Vite5 前端（H5） | https://github.com/wcyddaa/ai-assistant |
-| fastapi-ai-assistant | FastAPI + LangGraph 智能体服务 | https://github.com/wcyddaa/fastapi-ai-assistant |
+| 仓库 | 说明 | 地址                                               |
+| --- | --- | ------------------------------------------------- |
+| xs-platform | Spring Boot 4.1 微服务后端（8 个服务） | https://github.com/wcyddaa/xs-platform            |
+| ai-assistant | uni-app + Vue3 + Vite5 前端（H5） | <https://github.com/wcyddaa/ai-assistant>           |
+| fastapi-ai-assistant | FastAPI + LangGraph 智能体服务 | https://github.com/wcyddaa/fastapi-ai-assistant   |
 | xingshu-platform-guide | 本指引仓库（脚本、种子数据、Actions） | https://github.com/wcyddaa/xingshu-platform-guide |
 
 > 三个源码仓库均为公开仓库，**无需授权、无需账号**，直接 `git clone` 即可。
@@ -55,6 +55,12 @@ $env:XINGSHU_LLM_API_KEY = '你的大模型 Key'  # 阿里云百炼 DashScope，
 **向量模型 Key 不再使用环境变量**，统一在管理员端「模型配置」页面的 **EMBEDDING** 分类中填写
 （硅基流动 SiliconFlow、`BAAI/bge-m3`、1024 维），测试通过后发布。xs-book 会从 xs-config
 的受保护内部接口读取，配置后**无需重启、无需重跑脚本**。
+
+**对象存储凭据同样不在仓库里**：登录管理员端，进入「存储配置」页面填写 AGC 的 存储桶、
+区域、Client ID、Client Secret，点「测试连接」通过后保存即可。凭据以 AES-GCM 密文写入
+本机 MySQL 的 `xs-config.storage_config` 表，前端接口只返回"是否已配置"，业务服务通过
+内部接口读取。若不做这一步，教材/课件/作业仍可正常保存到本地
+`XingShuEnv\uploads`，只是不会同步到云端。
 
 ### 第 4 步：双击 `一键启动.bat`
 
@@ -276,7 +282,7 @@ Get-NetTCPConnection -State Listen -LocalPort 8080 | Select-Object OwningProcess
 ### 5. 后端 8083（xs-book）启动失败
 
 - 必须以 `xs-platform` 仓库根目录为工作目录启动（脚本已处理）。
-- 上传目录 `uploads\` 会自动创建。
+- 上传文件统一存放在 `XingShuEnv\uploads\{textbooks|courseware|homework}`，由 xs-media 管理，与各服务启动目录无关（可用 `XINGSHU_UPLOAD_DIR` 覆盖）。
 - ES 必须是 `http://localhost:9200`，并开启账号认证（默认 `elastic` / `xingshu123`，脚本已配置；密码可用 `XINGSHU_ES_PASSWORD` 覆盖）。
 
 ### 6. 前端能打开但接口 401 / 一直转圈

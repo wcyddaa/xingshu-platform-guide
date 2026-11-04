@@ -572,3 +572,26 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+
+-- ----------------------------
+-- 对象存储配置表（xs-config，平台级，仅管理员维护）
+-- ----------------------------
+USE `xs-config`;
+CREATE TABLE IF NOT EXISTS `storage_config` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `provider` VARCHAR(20) NOT NULL DEFAULT 'agc',
+    `bucket` VARCHAR(100) DEFAULT NULL,
+    `region` VARCHAR(50) DEFAULT 'cn-east-3',
+    `client_id` VARCHAR(100) DEFAULT NULL,
+    `client_secret` VARCHAR(500) DEFAULT NULL COMMENT '加密存储',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'untested',
+    `test_message` VARCHAR(500) DEFAULT NULL,
+    `last_test_time` DATETIME DEFAULT NULL,
+    `enabled` TINYINT NOT NULL DEFAULT 1,
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `creater_id` BIGINT DEFAULT NULL,
+    `updater_id` BIGINT DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_enabled` (`enabled`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='对象存储配置表';
